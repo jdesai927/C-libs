@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 
-public class PriorityQueue<T> where T : IComparable<T>
+public class PriorityQueue<T> where T : class, IComparable<T>
 {
     private List<T> array;
 
@@ -9,13 +9,14 @@ public class PriorityQueue<T> where T : IComparable<T>
 
     public PriorityQueue()
     {
-        array = new List<T>(1);
+        array = new List<T>();
+        array.Add(null);
         size = 0;
     }
 
     private bool PercolateUp(T elem, int index)
     {
-        if (index == 1)
+        if (index == 1 || index == 0)
         {
             return false;
         }
@@ -34,16 +35,16 @@ public class PriorityQueue<T> where T : IComparable<T>
 
     public void Add(T elem)
     {
-        array.Capacity++;
-        array[size + 1] = elem;
-        int currentIndex = size + 1;
+        if (size == 0)
+        array.Add(elem);
+        size++;
+        int currentIndex = size;
         bool perc = true;
         while (perc)
         {
             perc = PercolateUp(elem, currentIndex);
             currentIndex /= 2;
         }
-        size++;
     }
 
     private int PercolateDown(T elem, int index)
@@ -64,16 +65,24 @@ public class PriorityQueue<T> where T : IComparable<T>
 
     public T Remove()
     {
+        if (size == 0)
+        {
+            throw new KeyNotFoundException();
+        }
         T elem = array[1];
         array[1] = array[size];
+        T toPerc = array[1];
         array.RemoveAt(size);
         array.TrimExcess();
         int currentIndex = 1;
         bool perc = true;
         while (perc)
         {
-            currentIndex = PercolateDown(elem, currentIndex);
-            perc = !((elem.CompareTo(array[currentIndex * 2]) < 0) && (elem.CompareTo(array[currentIndex * 2 + 1])) < 0);
+            if (currentIndex * 2 >= array.Count || currentIndex * 2 + 1 >= array.Count)
+            {
+                break;
+            }
+            currentIndex = PercolateDown(toPerc, currentIndex);
         }
         size--;
         return elem;
